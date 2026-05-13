@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -28,10 +28,18 @@ export default function LoginForm({ onSuccess }: LoginFormProps) {
     formState: { errors },
   } = useForm<LoginFormData>({ mode: 'onBlur' });
 
-  // Exposed for demo credential autofill
-  if (typeof window !== 'undefined') {
-    (window as unknown as Record<string, unknown>).__loginSetValue = setValue;
-  }
+  // Expose setValue for demo credential autofill (client-side only)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      (window as unknown as Record<string, any>).__loginSetValue = setValue;
+    }
+    
+    return () => {
+      if (typeof window !== 'undefined') {
+        delete (window as unknown as Record<string, any>).__loginSetValue;
+      }
+    };
+  }, [setValue]);
 
   const onSubmit = async (data: LoginFormData) => {
     setLoading(true);
