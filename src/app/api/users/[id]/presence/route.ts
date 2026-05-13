@@ -1,14 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/client';
-
-const supabase = createClient();
+import { createClient } from '@/lib/supabase/server';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    const supabase = await createClient();
+
     const userId = params.id;
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'User ID required' },
+        { status: 400 }
+      );
+    }
 
     const { data, error } = await supabase
       .from('user_presence')
@@ -16,7 +23,14 @@ export async function GET(
       .eq('user_id', userId)
       .single();
 
-    if (error && error.code !== 'PGRST116') throw error;
+    if (error && error.code !== 'PGRST116') {
+      console.error(error);
+
+      return NextResponse.json(
+        { error: 'Failed to fetch presence' },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({
       data: data || {
@@ -25,7 +39,13 @@ export async function GET(
         last_heartbeat: null,
       },
     });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+
+  } catch (error) {
+    console.error(error);
+
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
   }
 }
