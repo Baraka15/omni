@@ -29,13 +29,14 @@ export default function DemoCredentials({ mode }: DemoCredentialsProps) {
 
   const handleUse = (account: typeof DEMO_ACCOUNTS[0]) => {
     // BACKEND INTEGRATION: autofill is purely client-side; no API needed
-    const setVal = (window as unknown as Record<string, unknown>).__loginSetValue as
-      | ((field: string, value: string) => void)
-      | undefined;
-    if (setVal) {
+    const setVal = (window as unknown as Record<string, any>).__loginSetValue;
+    
+    if (typeof setVal === 'function') {
       setVal('username', account.username);
       setVal('password', account.password);
       toast.success(`Filled in ${account.displayName}'s credentials`);
+    } else {
+      toast.error('Login form not ready');
     }
   };
 
@@ -65,8 +66,8 @@ export default function DemoCredentials({ mode }: DemoCredentialsProps) {
             <div
               className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-700"
               style={{
-                background: account.username === 'alexchen' ?'var(--primary)'
-                  : account.username === 'sarahkim' ?'#8B5CF6' :'#10B981',
+                background: account.username === 'alexchen' ? 'var(--primary)'
+                  : account.username === 'sarahkim' ? '#8B5CF6' : '#10B981',
                 color: 'white',
                 fontWeight: 700,
               }}
